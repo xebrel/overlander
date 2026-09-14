@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Sul Expedition</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sul Expedition">
+<meta name="theme-color" content="#0d1117">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230d1117' stroke='%23f59e0b' stroke-width='3'/%3E%3Cpolygon points='50,10 56,44 50,40' fill='%23ef4444'/%3E%3Cpolygon points='50,10 44,44 50,40' fill='%23b91c1c'/%3E%3Cpolygon points='50,90 56,56 50,60' fill='%23e2e8f0'/%3E%3Cpolygon points='50,90 44,56 50,60' fill='%2394a3b8'/%3E%3Cpolygon points='90,50 56,56 60,50' fill='%23e2e8f0'/%3E%3Cpolygon points='90,50 56,44 60,50' fill='%2394a3b8'/%3E%3Cpolygon points='10,50 44,56 40,50' fill='%23e2e8f0'/%3E%3Cpolygon points='10,50 44,44 40,50' fill='%2394a3b8'/%3E%3Ccircle cx='50' cy='50' r='6' fill='%23f59e0b'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230d1117' stroke='%23f59e0b' stroke-width='3'/%3E%3Cpolygon points='50,10 56,44 50,40' fill='%23ef4444'/%3E%3Cpolygon points='50,10 44,44 50,40' fill='%23b91c1c'/%3E%3Cpolygon points='50,90 56,56 50,60' fill='%23e2e8f0'/%3E%3Cpolygon points='50,90 44,56 50,60' fill='%2394a3b8'/%3E%3Cpolygon points='90,50 56,56 60,50' fill='%23e2e8f0'/%3E%3Cpolygon points='90,50 56,44 60,50' fill='%2394a3b8'/%3E%3Cpolygon points='10,50 44,56 40,50' fill='%23e2e8f0'/%3E%3Cpolygon points='10,50 44,44 40,50' fill='%2394a3b8'/%3E%3Ccircle cx='50' cy='50' r='6' fill='%23f59e0b'/%3E%3C/svg%3E">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#e6edf3;overflow:hidden}
+
+header{height:54px;background:#000000;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #21262d;z-index:1000;position:relative}
+.brand{display:flex;align-items:center;gap:10px}
+.compass-icon{width:28px;height:28px}
+.app-title{font-size:16px;font-weight:800;letter-spacing:.08em;color:#ffffff;text-transform:uppercase}
+.header-actions{display:flex;align-items:center;gap:10px}
+.btn-header-filter{background:#161b22;border:1px solid #30363d;color:#fff;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer}
+.btn-header-filter .badge-dot{background:#ef4444;color:#fff;font-size:10px;padding:2px 6px;border-radius:10px}
+
+#map{width:100%;height:calc(100% - 54px);position:absolute;top:54px;bottom:0;z-index:1}
+
+.search-floating{position:absolute;top:66px;left:12px;right:12px;z-index:999;display:flex;flex-direction:column}
+.search-bar-row{display:flex;gap:6px;width:100%}
+.search-input{flex:1;background:rgba(22,27,34,0.95);backdrop-filter:blur(10px);border:1px solid #30363d;color:#fff;border-radius:24px;padding:10px 16px;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,0.35);outline:none}
+.search-input::placeholder{color:#8b949e}
+.btn-open-filter{background:#008080;color:#fff;border:0;border-radius:24px;padding:0 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.35);cursor:pointer}
+
+.city-suggestions{display:none;background:rgba(22,27,34,0.98);backdrop-filter:blur(12px);border:1px solid #30363d;border-radius:12px;margin-top:6px;box-shadow:0 8px 24px rgba(0,0,0,0.5);overflow:hidden;max-height:260px;overflow-y:auto}
+.city-item{padding:10px 14px;font-size:13px;color:#f0f6fc;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #21262d;cursor:pointer;transition:background .15s}
+.city-item:hover{background:#30363d}
+.city-item:last-child{border-bottom:none}
+.city-badge{background:#1f6feb;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+
+.count-pill{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:999;background:rgba(13,17,23,0.9);backdrop-filter:blur(8px);border:1px solid #30363d;color:#7ee787;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.4);pointer-events:none}
+
+/* Pins Customizados iOverlander */
+.custom-pin{display:flex;align-items:center;justify-content:center;transition:transform .15s ease}
+.custom-pin:hover{transform:scale(1.15)}
+.pin-svg{filter:drop-shadow(0 2px 5px rgba(0,0,0,0.45))}
+
+/* Modal de Filtros */
+.filter-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000000;z-index:2000;flex-direction:column}
+.filter-header{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #21262d}
+.filter-header h2{margin:0;font-size:16px;font-weight:700;letter-spacing:.05em;color:#fff}
+.btn-close-filter{background:none;border:0;color:#58a6ff;font-size:15px;font-weight:700;cursor:pointer}
+.filter-body{flex:1;overflow-y:auto;padding:16px}
+.filter-actions-top{display:flex;gap:10px;margin-bottom:16px}
+.btn-action-filter{flex:1;background:#008080;color:#fff;border:0;padding:12px;border-radius:6px;font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.btn-clear-filter{flex:1;background:#161b22;border:1px solid #30363d;color:#f85149;padding:12px;border-radius:6px;font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+
+.filter-section-title{font-size:11px;font-weight:800;color:#8b949e;text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid #21262d;display:flex;justify-content:space-between;align-items:center}
+.filter-item{display:flex;align-items:center;justify-content:space-between;padding:12px 6px;border-bottom:1px solid #161b22;cursor:pointer}
+.filter-item-label{font-size:14px;color:#e6edf3;display:flex;align-items:center;gap:10px}
+.filter-check{width:20px;height:20px;accent-color:#008080;cursor:pointer}
+
+/* Modal Bottom Sheet */
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#161b22;border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,0.6);z-index:1500;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:transform .25s cubic-bezier(.16,1,.3,1);padding:18px}
+.sheet.active{transform:translateY(0)}
+.sheet-handle{width:40px;height:4px;background:#30363d;border-radius:2px;margin:0 auto 12px}
+.sheet-close{position:absolute;top:14px;right:14px;background:#21262d;border:0;color:#c9d1d9;width:28px;height:28px;border-radius:50%;font-size:16px;font-weight:700;cursor:pointer}
+
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;margin-right:6px;margin-bottom:6px}
+.badge-cat{background:#1f6feb;color:#fff}
+.badge-fuel{background:#d29922;color:#000}
+.badge-rev{background:#238636;color:#fff}
+.badge-wu{background:#ffcc00;color:#000;font-weight:800;border:1px solid #e6b800}
+.badge-dump{background:#8d6e63;color:#fff;font-weight:700;border:1px solid #a1887f}
+
+.amenity-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.amenity-chip{background:#21262d;border:1px solid #30363d;padding:6px 10px;border-radius:6px;font-size:12px;color:#c9d1d9}
+
+.desc-box{background:#0d1117;border-left:4px solid #f59e0b;padding:12px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13px;line-height:1.55;color:#f0f6fc;white-space:pre-line}
+.review-card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;margin-bottom:10px}
+.review-header{display:flex;justify-content:space-between;color:#8b949e;font-size:11px;margin-bottom:6px}
+.review-pt{background:rgba(35,134,54,0.15);border-left:3px solid #2ea043;padding:8px 10px;border-radius:0 6px 6px 0;font-size:13px;color:#7ee787;line-height:1.5;white-space:pre-line}
+
+.sheet-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.btn-nav{background:#1f6feb;color:#fff;border:0;padding:12px;border-radius:8px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.btn-iover{background:#da3633;color:#fff;border:0;padding:12px;border-radius:8px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg class="compass-icon" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="46" fill="#0d1117" stroke="#f59e0b" stroke-width="4"/>
+      <polygon points="50,10 56,44 50,40" fill="#ef4444"/>
+      <polygon points="50,10 44,44 50,40" fill="#b91c1c"/>
+      <polygon points="50,90 56,56 50,60" fill="#e2e8f0"/>
+      <polygon points="50,90 44,56 50,60" fill="#94a3b8"/>
+      <polygon points="90,50 56,56 60,50" fill="#e2e8f0"/>
+      <polygon points="90,50 56,44 60,50" fill="#94a3b8"/>
+      <polygon points="10,50 44,56 40,50" fill="#e2e8f0"/>
+      <polygon points="10,50 44,44 40,50" fill="#94a3b8"/>
+      <circle cx="50" cy="50" r="6" fill="#f59e0b"/>
+    </svg>
+    <span class="app-title">Sul Expedition</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn-header-filter" id="btnOpenFilterTop">
+      <span>Filtros</span>
+      <span class="badge-dot" id="filterBadge">0</span>
+    </button>
+  </div>
+</header>
+
+<div class="search-floating">
+  <div class="search-bar-row">
+    <input class="search-input" id="search" placeholder="🔍 Buscar cidade (ex: San Martin, Bariloche) ou local...">
+    <button class="btn-open-filter" id="btnOpenFilter">⚙️ Filtros</button>
+  </div>
+  <div class="city-suggestions" id="citySuggestions"></div>
+</div>
+
+<div id="map"></div>
+<div class="count-pill" id="countPill">Calculando...</div>
+
+<!-- Modal Completo de Filtros Estilo iOverlander -->
+<div class="filter-modal" id="filterModal">
+  <div class="filter-header">
+    <button class="btn-close-filter" id="btnCloseFilter">✕ Fechar</button>
+    <h2>FILTROS DA EXPEDIÇÃO</h2>
+    <button class="btn-close-filter" id="btnApplyFilter" style="color:#2ea043">✓ Aplicar</button>
+  </div>
+  <div class="filter-body">
+    <div class="filter-actions-top">
+      <button class="btn-action-filter" id="btnApplyFilter2">APLICAR FILTROS</button>
+      <button class="btn-clear-filter" id="btnClearFilter">LIMPAR TODOS</button>
+    </div>
+
+    <!-- Data Verificada -->
+    <div class="filter-section-title">
+      <span>DATA DA VISITA / VERIFICADO</span>
+    </div>
+    <div class="filter-item" onclick="setRecency('all')">
+      <span class="filter-item-label">📅 Qualquer data</span>
+      <input type="radio" name="recency" value="all" class="filter-check" checked>
+    </div>
+    <div class="filter-item" onclick="setRecency('3m')">
+      <span class="filter-item-label">⚡ Nos últimos 3 meses</span>
+      <input type="radio" name="recency" value="3m" class="filter-check">
+    </div>
+    <div class="filter-item" onclick="setRecency('6m')">
+      <span class="filter-item-label">⭐ Nos últimos 6 meses</span>
+      <input type="radio" name="recency" value="6m" class="filter-check">
+    </div>
+    <div class="filter-item" onclick="setRecency('1y')">
+      <span class="filter-item-label">📆 No último 1 ano</span>
+      <input type="radio" name="recency" value="1y" class="filter-check">
+    </div>
+    <div class="filter-item" onclick="setRecency('2y')">
+      <span class="filter-item-label">🗓️ Nos últimos 2 anos</span>
+      <input type="radio" name="recency" value="2y" class="filter-check">
+    </div>
+
+    <!-- País -->
+    <div class="filter-section-title">
+      <span>PAÍS / REGIÃO</span>
+    </div>
+    <div class="filter-item" onclick="setCountry('all')">
+      <span class="filter-item-label">🗺️ Todos (Brasil + Argentina + Uruguai)</span>
+      <input type="radio" name="country" value="all" class="filter-check" checked>
+    </div>
+    <div class="filter-item" onclick="setCountry('Brasil')">
+      <span class="filter-item-label">🇧🇷 Brasil (Santa Catarina & RS)</span>
+      <input type="radio" name="country" value="Brasil" class="filter-check">
+    </div>
+    <div class="filter-item" onclick="setCountry('Argentina')">
+      <span class="filter-item-label">🇦🇷 Argentina (Bariloche, San Martín, etc)</span>
+      <input type="radio" name="country" value="Argentina" class="filter-check">
+    </div>
+    <div class="filter-item" onclick="setCountry('Uruguay')">
+      <span class="filter-item-label">🇺🇾 Uruguai</span>
+      <input type="radio" name="country" value="Uruguay" class="filter-check">
+    </div>
+
+    <!-- Categorias -->
+    <div class="filter-section-title">
+      <span>CATEGORIAS DE PONTO</span>
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">⛽ Postos de Combustível (Geral/Diesel)</span>
+      <input type="checkbox" id="chkFuel" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">🏕️ Acampamento Livre (Wild Camping)</span>
+      <input type="checkbox" id="chkWild" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">🅿️ Pernoite / Parada de Apoio (Informal)</span>
+      <input type="checkbox" id="chkInformal" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">⛺ Campings Estruturados</span>
+      <input type="checkbox" id="chkCamp" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">💧 Pontos de Água Potável</span>
+      <input type="checkbox" id="chkWater" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">🚿 Duchas / Banhos</span>
+      <input type="checkbox" id="chkShowerCat" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">🔧 Mecânica & Peças</span>
+      <input type="checkbox" id="chkMechanic" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">💵 Western Union & Câmbio (Troca de Dinheiro)</span>
+      <input type="checkbox" id="chkWU" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">🚽 Descarte de Detritos / Esgoto (Dump Station)</span>
+      <input type="checkbox" id="chkDumpStation" class="filter-check">
+    </div>
+
+    <!-- Comodidades & Estrutura -->
+    <div class="filter-section-title">
+      <span>ESTRUTURA & SERVIÇOS CONFIRMADOS</span>
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">💬 Somente com Relatos da Comunidade</span>
+      <input type="checkbox" id="chkHasReviews" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">🚿 Com Ducha Confirmada</span>
+      <input type="checkbox" id="chkHasShower" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">📶 Com Wi-Fi</span>
+      <input type="checkbox" id="chkHasWifi" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">⚡ Com Energia 220V</span>
+      <input type="checkbox" id="chkHasElec" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">🐾 Aceita Pets</span>
+      <input type="checkbox" id="chkHasPet" class="filter-check">
+    </div>
+    <div class="filter-item">
+      <span class="filter-item-label">🚛 Acomoda Motorhome Grande</span>
+      <input type="checkbox" id="chkHasBigRig" class="filter-check">
+    </div>
+  </div>
+</div>
+
+<!-- Ficha Modal Bottom Sheet -->
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet()">✕</button>
+  <div id="sheetBadges"></div>
+  <h2 id="sheetTitle" style="margin:6px 0 2px;font-size:18px;color:#fff"></h2>
+  <div id="sheetMeta" style="color:#8b949e;font-size:11px;margin-bottom:10px"></div>
+  
+  <div id="sheetDescBox"></div>
+  
+  <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;margin-top:10px">Estrutura & Serviços:</div>
+  <div class="amenity-chips" id="sheetAmenities"></div>
+
+  <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">💬 Check-ins & Relatos de Viajantes:</div>
+  <div id="sheetReviews"></div>
+
+  <div class="sheet-actions">
+    <button class="btn-nav" id="btnSheetMaps">🧭 Google Maps</button>
+    <button class="btn-iover" id="btnSheetIover">⭐ Ver no iOverlander</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+
+<script src="places_1.js"></script>
+<script src="places_2.js"></script>
+<script src="relatos_1.js"></script>
+<script src="relatos_2.js"></script>
+<script src="relatos_3.js"></script>
+<script src="relatos_4.js"></script>
+<script src="relatos_5.js"></script>
+<script src="relatos_6.js"></script>
+<script src="relatos_7.js"></script>
+<script src="relatos_8.js"></script>
+<script src="relatos_9.js"></script>
+<script src="relatos_10.js"></script>
+
+<script>
+const PLACES = window.PLACES;
+const REVIEWS_DB = window.REVIEWS_DB;
+let currentPlace = null;
+const now = new Date();
+
+const map = L.map("map", { zoomControl: false }).setView([-31.0, -54.0], 5);
+L.control.zoom({ position: "bottomright" }).addTo(map);
+
+// Camadas de Mapas Globais Oficiais (100% livres, sem marca d'água de API Key e sem bloqueio 403)
+const layerEsriStreet = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+  maxZoom: 19,
+  attribution: "© Esri | Sul Expedition"
+});
+
+const layerEsriTopo = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+  maxZoom: 19,
+  attribution: "© Esri, DeLorme, USGS | Sul Expedition"
+});
+
+const layerEsriSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+  maxZoom: 19,
+  attribution: "© Esri, Earthstar Geographics | Sul Expedition"
+});
+
+// Adiciona o Mapa de Ruas e Estradas da Esri como padrão oficial
+layerEsriStreet.addTo(map);
+
+// Seletor discreto de mapas para alternar entre Estradas, Relevo/Montanhas e Imagens de Satélite
+L.control.layers({
+  "🛣️ Mapa de Estradas (Esri)": layerEsriStreet,
+  "⛰️ Mapa Topográfico / Relevo (Esri)": layerEsriTopo,
+  "🛰️ Satélite Real (Esri)": layerEsriSat
+}, null, { position: "topright", collapsed: true }).addTo(map);
+
+const markersCluster = L.markerClusterGroup({
+  showCoverageOnHover: false,
+  maxClusterRadius: 42,
+  spiderfyOnMaxZoom: true,
+  chunkedLoading: true
+});
+map.addLayer(markersCluster);
+
+function esc(s){ return String(s || "").replace(/[&<>'"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[c]); }
+
+function getMonthsDiff(dateStr){
+  if(!dateStr) return 9999;
+  const d = new Date(dateStr);
+  if(isNaN(d.getTime())) return 9999;
+  return (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+}
+
+// Gerador de Ícones Oficiais em Formato de Pin (Estilo iOverlander)
+const iconCache = {};
+function getPlaceIcon(p){
+  let bg = "#2e7d32"; // verde padrão camping
+  let symbol = "";
+
+  // 🚨 Alertas de emergência, roubo ou perigo
+  if(p.cat === "Warning" || (p.name && /(burglary|theft|robbery|assalto|perigo|alerta|cuidado|danger)/i.test(p.name))){
+    bg = "#dc2626"; // Vermelho emergência vivo
+    symbol = '<path d="M12 2L1 21h22L12 2zm0 3.5l8.5 14H3.5L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z" fill="#fff"/>';
+  } else if(p.cat === "Overnight Prohibited"){
+    bg = "#7f1d1d"; // Vermelho escuro proibido
+    symbol = '<circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="2" fill="none"/><path d="M6 6l12 12" stroke="#fff" stroke-width="2"/>';
+  } else if(p.is_fuel || p.cat === "Fuel Station"){
+    bg = "#f57c00"; // laranja posto
+    symbol = '<path d="M4 4h10v16H4zm11 5h1a2 2 0 0 1 2 2v5a1 1 0 0 0 2 0V9a4 4 0 0 0-4-4h-1zM6 7h6v4H6z" fill="#fff"/>';
+  } else if(p.cat === "Wild Camping"){
+    bg = "#1b5e20"; // verde escuro wild camp
+    // Lua + barraca (ícone idêntico ao iOverlander)
+    symbol = '<path d="M12 4a7 7 0 0 1 7 7 7 7 0 0 1-5 6.7 8 8 0 1 0-8.7-8.7A7 7 0 0 1 12 4z" fill="#fff"/><path d="M4 19l8-10 8 10H4zm8-6l-3 4h6l-3-4z" fill="#fff"/>';
+  } else if(p.cat === "Established Campground"){
+    bg = "#2e7d32"; // verde acampamento
+    symbol = '<path d="M12 3L2 20h20L12 3zm0 5l6 10H6l6-10z" fill="#fff"/>';
+  } else if(p.cat === "Informal Campsite"){
+    bg = "#33691e"; // verde oliva parada
+    symbol = '<path d="M6 3h7a4 4 0 0 1 4 4 4 4 0 0 1-4 4H9v7H6V3zm3 3v2h4a1 1 0 0 0 0-2H9z" fill="#fff"/>';
+  } else if(p.cat === "Water"){
+    bg = "#0288d1"; // azul água
+    symbol = '<path d="M12 2.7S5 11 5 15.5a7 7 0 0 0 14 0c0-4.5-7-12.8-7-12.8zm0 14.3a4.5 4.5 0 0 1-4.5-4.5.5.5 0 0 1 1 0 3.5 3.5 0 0 0 3.5 3.5.5.5 0 0 1 0 1z" fill="#fff"/>';
+  } else if(p.cat === "Showers"){
+    bg = "#0097a7"; // ciano chuveiro
+    symbol = '<path d="M12 4a5 5 0 0 1 5 5v1H7V9a5 5 0 0 1 5-5zm-5 8h10v1H7v-1zm1 3h1v2H8v-2zm4 0h1v2h-1v-2zm4 0h1v2h-1v-2z" fill="#fff"/>';
+  } else if(p.cat === "Mechanic and Parts"){
+    bg = "#e65100"; // laranja forte mecânica
+    symbol = '<path d="M19.7 15.3l-3.2-3.2a5.5 5.5 0 0 0-.8-6.6 5.5 5.5 0 0 0-7.3-.4l3.1 3.1-2.1 2.1-3.1-3.1a5.5 5.5 0 0 0 .4 7.3 5.5 5.5 0 0 0 6.6.8l3.2 3.2a1.5 1.5 0 0 0 2.1 0l1.1-1.1a1.5 1.5 0 0 0 0-2.1z" fill="#fff"/>';
+  } else if(p.cat === "Restaurant"){
+    bg = "#0288d1";
+    symbol = '<path d="M11 9H9V2H7v7H5V2H3v7c0 2.1 1.6 3.8 3.7 4l-.7 9h2l-.7-9c2.1-.2 3.7-1.9 3.7-4V2h-2v7zm7-7v9h-2V2h-2v9c0 2.2 1.8 4 4 4v7h2V2h-2z" fill="#fff"/>';
+  } else if(p.cat === "Tourist Attraction"){
+    bg = "#00acc1";
+    symbol = '<path d="M4 6h3.2L9 4h6l1.8 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" fill="#fff"/>';
+  } else if(p.cat === "Hotel" || p.cat === "Hostel"){
+    bg = "#5e35b1";
+    symbol = '<path d="M7 13c1.7 0 3-1.3 3-3S8.7 7 7 7s-3 1.3-3 3 1.3 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9a4 4 0 0 0-4-4z" fill="#fff"/>';
+  } else if(p.cat === "Wifi"){
+    bg = "#1976d2"; // Azul sinal de wifi
+    symbol = '<path d="M12 4C7.3 4 3.1 5.9 0 9l2.1 2.1C4.5 8.7 8.1 7.2 12 7.2s7.5 1.5 9.9 3.9L24 9c-3.1-3.1-7.3-5-12-5zm0 6c-3.3 0-6.3 1.3-8.5 3.5l2.1 2.1c1.6-1.6 3.9-2.6 6.4-2.6s4.7 1 6.4 2.6l2.1-2.1C18.3 11.3 15.3 10 12 10zm0 6c-1.7 0-3.1.7-4.2 1.8l4.2 4.2 4.2-4.2C15.1 16.7 13.7 16 12 16z" fill="#fff"/>';
+  } else if(p.cat === "Pet Services"){
+    bg = "#795548"; // Marrom pata de cachorro / pet
+    symbol = '<path d="M4.5 10c1.4 0 2.5-1.1 2.5-2.5S5.9 5 4.5 5 2 6.1 2 7.5 3.1 10 4.5 10zm15 0c1.4 0 2.5-1.1 2.5-2.5S20.9 5 19.5 5 17 6.1 17 7.5s1.1 2.5 2.5 2.5zM8.5 7C9.9 7 11 5.9 11 4.5S9.9 2 8.5 2 6 3.1 6 4.5 7.1 7 8.5 7zm7 0c1.4 0 2.5-1.1 2.5-2.5S16.9 2 15.5 2 13 3.1 13 4.5s1.1 2.5 2.5 2.5zM12 11.5c-3 0-6 1.8-6 5.5 0 2.8 2.2 5 5 5h2c2.8 0 5-2.2 5-5 0-3.7-3-5.5-6-5.5z" fill="#fff"/>';
+  } else if(p.cat === "Propane"){
+    bg = "#e64a19"; // Laranja fogo/propano
+    symbol = '<path d="M12 2.5c-.8 2-2 3.8-3.5 5.5C6.8 10 5 12.3 5 15c0 3.9 3.1 7 7 7s7-3.1 7-7c0-2.7-1.8-5-3.5-7-1.5-1.7-2.7-3.5-3.5-5.5z" fill="#fff"/>';
+  } else if(p.cat === "Laundromat"){
+    bg = "#00838f"; // Turquesa máquina de lavar
+    symbol = '<path d="M18 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-15a2 2 0 0 0-2-2zm-10 2h2v2H8v-2zm10 15H6V8h12v11.5zM12 9.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 7a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#fff"/>';
+  } else if(p.cat === "Medical"){
+    bg = "#c62828"; // Vermelho cruz médica
+    symbol = '<path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6V4z" fill="#fff"/>';
+  } else if(p.is_western_union){
+    bg = "#ffcc00"; // Amarelo oficial Western Union
+    // Símbolo com fundo escuro e $ amarelo
+    symbol = '<circle cx="12" cy="12" r="9" fill="#000"/><path d="M12.4 6c-2.3 0-4.1 1.4-4.1 3.4 0 1.9 1.5 2.7 3.3 3.2 1.7.5 2.8.9 2.8 2 0 .9-.9 1.5-2 1.5-1.5 0-2.5-.8-2.7-1.9H8c.2 1.9 1.7 3.3 3.4 3.6V20h1.6v-1.9c2.3 0 4.2-1.3 4.2-3.4 0-2.1-1.7-2.9-3.6-3.4-1.7-.5-2.5-.9-2.5-1.8 0-.8.8-1.4 1.9-1.4 1.3 0 2.2.6 2.4 1.7h1.7c-.2-1.7-1.5-3-3.3-3.2V5h-1.6v1.6h-.4z" fill="#ffcc00"/>';
+  } else if(p.cat === "Financial"){
+    bg = "#2e7d32"; // Verde cifrão
+    symbol = '<path d="M12.4 3c-3 0-5.4 1.8-5.4 4.5 0 2.5 2 3.6 4.3 4.2 2.2.6 3.7 1.2 3.7 2.6 0 1.2-1.2 2-2.7 2-2 0-3.3-1-3.6-2.5H6.5c.3 2.5 2.2 4.3 4.5 4.7V21h2v-2.5c3 0 5.5-1.7 5.5-4.5 0-2.8-2.2-3.8-4.7-4.5-2.2-.6-3.3-1.2-3.3-2.3 0-1.1 1-1.9 2.5-1.9 1.7 0 2.9.8 3.2 2.2h2.2c-.3-2.2-2-3.9-4.4-4.2V1h-2v2h-.6z" fill="#fff"/>';
+  } else if(p.cat === "Customs and Immigration"){
+    bg = "#37474f"; // Cinza escuro fronteira / passaporte
+    symbol = '<path d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm4 11H8v-1.2c0-1.3 2.7-2 4-2s4 .7 4 2V18z" fill="#fff"/>';
+  } else if(p.cat === "Shopping"){
+    bg = "#00897b"; // Verde mercado carrinho
+    symbol = '<path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-9.8-3.2l.1-.3 1-1.8h7.5c.8 0 1.4-.4 1.7-1.1l3.6-6.5a1 1 0 0 0-.9-1.4H5.2L4.3 2H1v2h2l3.6 7.6L5.3 14c-.6.9-.1 2 1 2h12v-2H8.2c-.1 0-.2 0-.2-.2z" fill="#fff"/>';
+  } else if(p.cat === "Checkpoint" || p.cat === "Road Report"){
+    bg = "#f57f17"; // Âmbar alerta de trânsito
+    symbol = '<path d="M12 2L1 21h22L12 2zm0 3.5l8.5 14H3.5L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z" fill="#fff"/>';
+  } else if(p.cat === "Farm & Vineyard Camping"){
+    bg = "#558b2f"; // Verde oliva fazenda/vinha
+    symbol = '<path d="M12 3L2 12h3v8h14v-8h3L12 3zm0 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z" fill="#fff"/>';
+  } else if(p.cat === "Sanitation Dump Station"){
+    bg = "#4e342e"; // Marrom descarte sanitário
+    symbol = '<path d="M6 3h12v2H6zm1 4h10v2a5 5 0 0 1-10 0V7zm2 10v4h6v-4h2l-5-5-5 5h2z" fill="#fff"/>';
+  } else {
+    bg = "#455a64"; // padrão cinza ardósia
+    symbol = '<circle cx="12" cy="12" r="4" fill="#fff"/>';
+  }
+
+  const key = bg + symbol;
+  if(iconCache[key]) return iconCache[key];
+
+  // SVG Pin no formato gota do iOverlander
+  const svgHtml = `<svg class="pin-svg" viewBox="0 0 32 42" width="30" height="39">
+    <path d="M16 1C7.7 1 1 7.7 1 16c0 10.5 13.5 24 14.3 24.7a1 1 0 0 0 1.4 0C17.5 40 31 26.5 31 16 31 7.7 24.3 1 16 1z" fill="${bg}" stroke="#ffffff" stroke-width="1.8"/>
+    <g transform="translate(4, 4) scale(1)">
+      ${symbol}
+    </g>
+  </svg>`;
+
+  const icon = L.divIcon({
+    className: "custom-pin",
+    html: svgHtml,
+    iconSize: [30, 39],
+    iconAnchor: [15, 39],
+    tooltipAnchor: [0, -36]
+  });
+
+  iconCache[key] = icon;
+  return icon;
+}
+
+// Filtros State
+let selectedCountry = "all";
+let selectedRecency = "all";
+
+function setCountry(c){
+  selectedCountry = c;
+  document.querySelectorAll('input[name="country"]').forEach(r => r.checked = (r.value === c));
+}
+function setRecency(r){
+  selectedRecency = r;
+  document.querySelectorAll('input[name="recency"]').forEach(el => el.checked = (el.value === r));
+}
+
+function getActiveFiltersCount(){
+  let count = 0;
+  if(selectedCountry !== "all") count++;
+  if(selectedRecency !== "all") count++;
+  if(document.getElementById("chkFuel").checked) count++;
+  if(document.getElementById("chkWild").checked) count++;
+  if(document.getElementById("chkInformal").checked) count++;
+  if(document.getElementById("chkCamp").checked) count++;
+  if(document.getElementById("chkWater").checked) count++;
+  if(document.getElementById("chkShowerCat").checked) count++;
+  if(document.getElementById("chkMechanic").checked) count++;
+  if(document.getElementById("chkWU").checked) count++;
+  if(document.getElementById("chkDumpStation").checked) count++;
+  if(document.getElementById("chkHasReviews").checked) count++;
+  if(document.getElementById("chkHasShower").checked) count++;
+  if(document.getElementById("chkHasWifi").checked) count++;
+  if(document.getElementById("chkHasElec").checked) count++;
+  if(document.getElementById("chkHasPet").checked) count++;
+  if(document.getElementById("chkHasBigRig").checked) count++;
+  return count;
+}
+
+function filteredPlaces(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const chkFuel = document.getElementById("chkFuel").checked;
+  const chkWild = document.getElementById("chkWild").checked;
+  const chkInformal = document.getElementById("chkInformal").checked;
+  const chkCamp = document.getElementById("chkCamp").checked;
+  const chkWater = document.getElementById("chkWater").checked;
+  const chkShowerCat = document.getElementById("chkShowerCat").checked;
+  const chkMechanic = document.getElementById("chkMechanic").checked;
+  const chkWU = document.getElementById("chkWU").checked;
+  const chkDumpStation = document.getElementById("chkDumpStation").checked;
+
+  const hasCatFilter = chkFuel || chkWild || chkInformal || chkCamp || chkWater || chkShowerCat || chkMechanic || chkWU || chkDumpStation;
+
+  const chkHasReviews = document.getElementById("chkHasReviews").checked;
+  const chkHasShower = document.getElementById("chkHasShower").checked;
+  const chkHasWifi = document.getElementById("chkHasWifi").checked;
+  const chkHasElec = document.getElementById("chkHasElec").checked;
+  const chkHasPet = document.getElementById("chkHasPet").checked;
+  const chkHasBigRig = document.getElementById("chkHasBigRig").checked;
+
+  return PLACES.filter(p => {
+    if(selectedCountry !== "all" && p.country !== selectedCountry) return false;
+
+    if(selectedRecency !== "all"){
+      const diff = getMonthsDiff(p.verified_at);
+      if(selectedRecency === "3m" && diff > 3) return false;
+      if(selectedRecency === "6m" && diff > 6) return false;
+      if(selectedRecency === "1y" && diff > 12) return false;
+      if(selectedRecency === "2y" && diff > 24) return false;
+    }
+
+    if(hasCatFilter){
+      let matchesCat = false;
+      if(chkFuel && p.is_fuel) matchesCat = true;
+      if(chkWild && p.cat === "Wild Camping") matchesCat = true;
+      if(chkInformal && p.cat === "Informal Campsite") matchesCat = true;
+      if(chkCamp && p.cat === "Established Campground") matchesCat = true;
+      if(chkWater && p.cat === "Water") matchesCat = true;
+      if(chkShowerCat && p.cat === "Showers") matchesCat = true;
+      if(chkMechanic && p.cat === "Mechanic and Parts") matchesCat = true;
+      if(chkWU && (p.is_western_union || p.cat === "Financial")) matchesCat = true;
+      if(chkDumpStation && (p.has_dump || p.cat === "Sanitation Dump Station")) matchesCat = true;
+      if(!matchesCat) return false;
+    }
+
+    if(chkHasReviews && !p.has_reviews) return false;
+    if(chkHasShower && !p.has_shower) return false;
+    if(chkHasWifi && !p.has_wifi) return false;
+    if(chkHasElec && !p.has_elec) return false;
+    if(chkHasPet && !p.has_pet) return false;
+    if(chkHasBigRig && !p.has_big_rig) return false;
+
+    if(q){
+      const ams = Object.keys(p.amenities || {}).join(" ");
+      const hay = ((p.name||"") + " " + (p.country||"") + " " + (p.cat||"") + " " + ams).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+
+    return true;
+  });
+}
+
+function renderMap(){
+  markersCluster.clearLayers();
+  const list = filteredPlaces();
+  document.getElementById("countPill").textContent = list.length.toLocaleString() + " locais encontrados";
+  document.getElementById("filterBadge").textContent = getActiveFiltersCount();
+
+  const markers = [];
+  list.forEach(p => {
+    // Marcador com ícone e cor específica da categoria ao dar zoom
+    const m = L.marker([p.lat, p.lon], { icon: getPlaceIcon(p) });
+    let tip = p.name;
+    if(p.is_fuel) tip = "⛽ " + tip;
+    if(p.has_reviews) tip = "💬 " + tip;
+    m.bindTooltip(esc(tip));
+    m.on("click", () => openSheet(p));
+    markers.push(m);
+  });
+  markersCluster.addLayers(markers);
+}
+
+function openSheet(p){
+  currentPlace = p;
+  document.getElementById("sheetTitle").textContent = p.name;
+  
+  const verificado = p.verified_at ? (" • Visita: " + p.verified_at) : "";
+  document.getElementById("sheetMeta").textContent = p.country + " • " + p.lat.toFixed(5) + ", " + p.lon.toFixed(5) + verificado;
+
+  const isWarning = p.cat === "Warning" || (p.name && /(burglary|theft|robbery|assalto|perigo|alerta|cuidado|danger)/i.test(p.name));
+  const badgeClass = isWarning ? 'badge' : 'badge badge-cat';
+  const badgeStyle = isWarning ? 'style="background:#dc2626;color:#fff;font-weight:800;border:1px solid #ef4444;"' : '';
+  const catLabel = isWarning ? '🚨 ALERTA / PERIGO' : esc(p.cat_pt || p.cat);
+  const badges = ['<span class="' + badgeClass + '" ' + badgeStyle + '>' + catLabel + '</span>'];
+  if(p.is_western_union) badges.push('<span class="badge badge-wu">💵 Western Union / Câmbio</span>');
+  if(p.has_dump || p.cat === "Sanitation Dump Station") badges.push('<span class="badge badge-dump">🚽 Descarte / Dump Station</span>');
+  if(p.is_fuel) badges.push('<span class="badge badge-fuel">⛽ Posto / Combustível</span>');
+  if(p.has_reviews) badges.push('<span class="badge badge-rev">💬 ' + p.review_count + ' Relato(s) Traduzido(s)</span>');
+  document.getElementById("sheetBadges").innerHTML = badges.join("");
+
+  const amList = Object.keys(p.amenities || {});
+  if(amList.length > 0){
+    document.getElementById("sheetAmenities").innerHTML = amList.map(k => '<span class="amenity-chip">✓ ' + esc(k) + '</span>').join("");
+  } else {
+    document.getElementById("sheetAmenities").innerHTML = '<span style="color:#8b949e;font-size:12px">Sem comodidades detalhadas.</span>';
+  }
+
+  const guidKey = p.guid ? (REVIEWS_DB[p.guid] ? p.guid : (REVIEWS_DB[p.guid.toLowerCase()] ? p.guid.toLowerCase() : null)) : null;
+  const revData = guidKey ? REVIEWS_DB[guidKey] : null;
+
+  let bannerHtml = '';
+  if(isWarning){
+    bannerHtml = '<div style="background:#450a0a;border:2px solid #ef4444;color:#fecaca;padding:12px;border-radius:8px;margin:10px 0;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;">⚠️ <span><b>AVISO DE SEGURANÇA:</b> Este ponto possui relatos de tentativa de arrombamento, furto ou alerta policial registrado por viajantes!</span></div>';
+  }
+
+  if(revData && revData.description_pt){
+    document.getElementById("sheetDescBox").innerHTML = bannerHtml + '<div class="desc-box" style="' + (isWarning ? 'border-left-color:#ef4444;background:#1a0505;' : '') + '"><b>' + (isWarning ? '🚨 Detalhes do Alerta:' : '📝 Descrição do Local:') + '</b><br>' + esc(revData.description_pt) + '</div>';
+  } else {
+    document.getElementById("sheetDescBox").innerHTML = bannerHtml;
+  }
+
+  const revListEl = document.getElementById("sheetReviews");
+  if(revData && revData.reviews && revData.reviews.length > 0){
+    const items = revData.reviews.filter(r => r.user !== 'Descrição Oficial / Autor');
+    if(items.length === 0){
+      revListEl.innerHTML = '<div style="color:#8b949e;font-size:12px">Apenas descrição cadastrada, sem novos check-ins.</div>';
+    } else {
+      revListEl.innerHTML = items.map(r => `
+        <div class="review-card">
+          <div class="review-header">
+            <span>👤 <b>${esc(r.user || 'Viajante')}</b></span>
+            <span>📅 ${esc(r.date || '')}</span>
+          </div>
+          <div class="review-pt">
+            🇧🇷 <b>Tradução para Português:</b><br>
+            ${esc(r.pt || r.original)}
+          </div>
+          <details style="margin-top:6px;font-size:11px;color:#8b949e">
+            <summary style="cursor:pointer">Texto original</summary>
+            <div style="margin-top:4px;font-style:italic">${esc(r.original || r.pt)}</div>
+          </details>
+        </div>
+      `).join("");
+    }
+  } else {
+    revListEl.innerHTML = '<div style="color:#8b949e;font-size:12px;padding:6px 0">Nenhum check-in baixado offline para este ponto.</div>';
+  }
+
+  document.getElementById("btnSheetMaps").onclick = () => window.open("https://www.google.com/maps/dir/?api=1&destination=" + p.lat + "," + p.lon, "_blank");
+  document.getElementById("btnSheetIover").onclick = () => window.open(p.guid ? ("https://ioverlander.com/places/" + p.guid) : ("https://ioverlander.com/places/explore?lat=" + p.lat + "&lng=" + p.lon), "_blank");
+
+  document.getElementById("sheet").classList.add("active");
+}
+
+function closeSheet(){
+  document.getElementById("sheet").classList.remove("active");
+}
+
+// Modal de Filtros
+const filterModal = document.getElementById("filterModal");
+function openFilterModal(){ filterModal.style.display = "flex"; }
+function closeFilterModal(){ filterModal.style.display = "none"; }
+
+document.getElementById("btnOpenFilter").onclick = openFilterModal;
+document.getElementById("btnOpenFilterTop").onclick = openFilterModal;
+document.getElementById("btnCloseFilter").onclick = closeFilterModal;
+document.getElementById("btnApplyFilter").onclick = () => { closeFilterModal(); renderMap(); };
+document.getElementById("btnApplyFilter2").onclick = () => { closeFilterModal(); renderMap(); };
+
+document.getElementById("btnClearFilter").onclick = () => {
+  setCountry("all");
+  setRecency("all");
+  document.querySelectorAll('#filterModal input[type="checkbox"]').forEach(c => c.checked = false);
+  document.getElementById("search").value = "";
+  closeFilterModal();
+  renderMap();
+};
+
+const CITIES_DB = [
+  // Argentina - Corredor Patagônia & Rota 40
+  { name: "San Martín de los Andes", lat: -40.1578, lon: -71.3533, country: "Argentina", zoom: 14 },
+  { name: "San Carlos de Bariloche", lat: -41.1335, lon: -71.3103, country: "Argentina", zoom: 13 },
+  { name: "Villa La Angostura", lat: -40.7634, lon: -71.6447, country: "Argentina", zoom: 14 },
+  { name: "Junín de los Andes", lat: -39.9504, lon: -71.0694, country: "Argentina", zoom: 14 },
+  { name: "El Bolsón", lat: -41.9667, lon: -71.5333, country: "Argentina", zoom: 14 },
+  { name: "Piedra del Águila", lat: -40.0469, lon: -70.0769, country: "Argentina", zoom: 14 },
+  { name: "Neuquén", lat: -38.9516, lon: -68.0591, country: "Argentina", zoom: 13 },
+  { name: "General Roca", lat: -39.0333, lon: -67.5833, country: "Argentina", zoom: 13 },
+  { name: "Zapala", lat: -38.9030, lon: -70.0637, country: "Argentina", zoom: 14 },
+  { name: "San Antonio Oeste / Las Grutas", lat: -40.8094, lon: -65.0934, country: "Argentina", zoom: 13 },
+  { name: "Viedma", lat: -40.8135, lon: -62.9967, country: "Argentina", zoom: 13 },
+  { name: "Puerto Madryn", lat: -42.7692, lon: -65.0385, country: "Argentina", zoom: 13 },
+  { name: "Trelew", lat: -43.2490, lon: -65.3051, country: "Argentina", zoom: 13 },
+  { name: "Esquel", lat: -42.9114, lon: -71.3195, country: "Argentina", zoom: 14 },
+  
+  // Argentina Central / Rota até Bariloche
+  { name: "Santa Rosa (La Pampa)", lat: -36.6167, lon: -64.2833, country: "Argentina", zoom: 13 },
+  { name: "Bahía Blanca", lat: -38.7183, lon: -62.2663, country: "Argentina", zoom: 13 },
+  { name: "Buenos Aires", lat: -34.6037, lon: -58.3816, country: "Argentina", zoom: 12 },
+  { name: "Rosario", lat: -32.9468, lon: -60.6393, country: "Argentina", zoom: 13 },
+  { name: "Santa Fe", lat: -31.6333, lon: -60.7000, country: "Argentina", zoom: 13 },
+  { name: "Paraná", lat: -31.7333, lon: -60.5333, country: "Argentina", zoom: 13 },
+  { name: "Córdoba", lat: -31.4201, lon: -64.1888, country: "Argentina", zoom: 12 },
+  { name: "Mendoza", lat: -32.8895, lon: -68.8458, country: "Argentina", zoom: 13 },
+  { name: "San Luis", lat: -33.3017, lon: -66.3378, country: "Argentina", zoom: 13 },
+  { name: "Gualeguaychú", lat: -33.0114, lon: -58.5172, country: "Argentina", zoom: 14 },
+  { name: "Colón (Entre Ríos)", lat: -32.2229, lon: -58.1439, country: "Argentina", zoom: 14 },
+  { name: "Concordia", lat: -31.3930, lon: -58.0209, country: "Argentina", zoom: 13 },
+  { name: "Paso de los Libres", lat: -29.7125, lon: -57.0878, country: "Argentina", zoom: 14 },
+  { name: "Uruguaiana", lat: -29.7547, lon: -57.0883, country: "Brasil", zoom: 14 },
+
+  // Brasil (SC / RS)
+  { name: "Florianópolis", lat: -27.5954, lon: -48.5480, country: "Brasil", zoom: 12 },
+  { name: "Garopaba / Guarda do Embaú", lat: -28.0244, lon: -48.6144, country: "Brasil", zoom: 13 },
+  { name: "Imbituba", lat: -28.2400, lon: -48.6703, country: "Brasil", zoom: 13 },
+  { name: "Laguna", lat: -28.4822, lon: -48.7811, country: "Brasil", zoom: 13 },
+  { name: "Tubarão", lat: -28.4728, lon: -49.0069, country: "Brasil", zoom: 13 },
+  { name: "Criciúma", lat: -28.6775, lon: -49.3703, country: "Brasil", zoom: 13 },
+  { name: "Lages", lat: -27.8161, lon: -50.3261, country: "Brasil", zoom: 13 },
+  { name: "Urubici (Serra Catarinense)", lat: -28.0150, lon: -49.5919, country: "Brasil", zoom: 13 },
+  { name: "São Joaquim", lat: -28.2936, lon: -49.9317, country: "Brasil", zoom: 13 },
+  { name: "Chapecó", lat: -27.1004, lon: -52.6152, country: "Brasil", zoom: 13 },
+  { name: "Porto Alegre", lat: -30.0346, lon: -51.2177, country: "Brasil", zoom: 12 },
+  { name: "Gramado / Canela (Serra Gaúcha)", lat: -29.3746, lon: -50.8764, country: "Brasil", zoom: 13 },
+  { name: "Caxias do Sul", lat: -29.1683, lon: -51.1794, country: "Brasil", zoom: 13 },
+  { name: "Bento Gonçalves", lat: -29.1714, lon: -51.5186, country: "Brasil", zoom: 13 },
+  { name: "Torres", lat: -29.3364, lon: -49.7269, country: "Brasil", zoom: 14 },
+  { name: "Pelotas", lat: -31.7654, lon: -52.3376, country: "Brasil", zoom: 13 },
+  { name: "Rio Grande / Cassino", lat: -32.0350, lon: -52.0986, country: "Brasil", zoom: 13 },
+  { name: "Santa Maria", lat: -29.6842, lon: -53.8069, country: "Brasil", zoom: 13 },
+  { name: "Passo Fundo", lat: -28.2628, lon: -52.4067, country: "Brasil", zoom: 13 },
+  { name: "Chuí / Chuy (Fronteira)", lat: -33.6978, lon: -53.4561, country: "Brasil/Uruguai", zoom: 14 },
+
+  // Uruguai
+  { name: "Montevidéu", lat: -34.9011, lon: -56.1645, country: "Uruguai", zoom: 12 },
+  { name: "Punta del Este", lat: -34.9644, lon: -54.9439, country: "Uruguai", zoom: 13 },
+  { name: "Colonia del Sacramento", lat: -34.4626, lon: -57.8400, country: "Uruguai", zoom: 14 },
+  { name: "La Paloma / Rocha", lat: -34.6644, lon: -54.1611, country: "Uruguai", zoom: 14 },
+  { name: "Punta del Diablo", lat: -34.0433, lon: -53.5383, country: "Uruguai", zoom: 14 },
+  { name: "Cabo Polonio", lat: -34.4000, lon: -53.7833, country: "Uruguai", zoom: 14 },
+  { name: "Salto", lat: -31.3833, lon: -57.9667, country: "Uruguai", zoom: 13 },
+  { name: "Paysandú", lat: -32.3214, lon: -58.0756, country: "Uruguai", zoom: 13 },
+  { name: "Fray Bentos", lat: -33.1325, lon: -58.2956, country: "Uruguai", zoom: 14 }
+];
+
+const citySugEl = document.getElementById("citySuggestions");
+
+function norm(s){
+  return (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+}
+
+function updateCitySuggestions(){
+  const rawQ = document.getElementById("search").value;
+  const q = norm(rawQ);
+  if(!q || q.length < 2){
+    citySugEl.style.display = "none";
+    citySugEl.innerHTML = "";
+    return;
+  }
+
+  const matchingCities = CITIES_DB.filter(c => norm(c.name).includes(q) || norm(c.country).includes(q));
+  if(matchingCities.length === 0){
+    citySugEl.style.display = "none";
+    citySugEl.innerHTML = "";
+    return;
+  }
+
+  citySugEl.innerHTML = matchingCities.slice(0, 5).map(c => `
+    <div class="city-item" onclick="goToCity(${c.lat}, ${c.lon}, ${c.zoom}, '${esc(c.name)}')">
+      <span>📍 <b>${esc(c.name)}</b> <small style="color:#8b949e">(${esc(c.country)})</small></span>
+      <span class="city-badge">🏙️ Cidade (Ver todos os pontos)</span>
+    </div>
+  `).join("");
+  citySugEl.style.display = "block";
+}
+
+window.goToCity = function(lat, lon, zoom, cityName){
+  document.getElementById("search").value = "";
+  citySugEl.style.display = "none";
+  renderMap(); // Restaura todos os pontos da cidade sem filtro restritivo!
+  map.setView([lat, lon], zoom);
+};
+
+let searchTimeout = null;
+function handleSearch(autoZoom = false){
+  renderMap();
+  const list = filteredPlaces();
+  const rawQ = document.getElementById("search").value;
+  const q = norm(rawQ);
+
+  // Se o usuário digitou o nome de uma cidade e apertou Enter, verifica se há correspondência exata
+  const exactCity = CITIES_DB.find(c => norm(c.name) === q || (q.length > 5 && norm(c.name).startsWith(q)));
+  if(exactCity && autoZoom){
+    goToCity(exactCity.lat, exactCity.lon, exactCity.zoom, exactCity.name);
+    return;
+  }
+
+  if(q && list.length > 0 && autoZoom){
+    if(list.length === 1){
+      map.setView([list[0].lat, list[0].lon], 14);
+    } else {
+      const bounds = L.latLngBounds(list.map(p => [p.lat, p.lon]));
+      map.fitBounds(bounds, { maxZoom: 13, padding: [40, 40] });
+    }
+  }
+}
+
+document.getElementById("search").addEventListener("input", () => {
+  renderMap();
+  updateCitySuggestions();
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    handleSearch(true);
+  }, 750);
+});
+
+document.getElementById("search").addEventListener("keydown", (e) => {
+  if(e.key === "Enter"){
+    e.preventDefault();
+    clearTimeout(searchTimeout);
+    citySugEl.style.display = "none";
+    handleSearch(true);
+  }
+});
+
+// Fechar sugestões ao clicar fora
+document.addEventListener("click", (e) => {
+  if(!e.target.closest(".search-floating")){
+    citySugEl.style.display = "none";
+  }
+});
+
+renderMap();
+</script>
+</body>
+</html>
